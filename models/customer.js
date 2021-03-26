@@ -4,6 +4,12 @@
 
 const db = require("../db");
 const Reservation = require("./reservation");
+const QUERY = `SELECT id,
+first_name AS "firstName",
+last_name  AS "lastName",
+phone,
+notes
+FROM customers`
 
 /** Customer of the restaurant. */
 
@@ -14,6 +20,29 @@ class Customer {
     this.lastName = lastName;
     this.phone = phone;
     this.notes = notes;
+  }
+
+
+
+  static async search(name) {
+    let splitName = name.split(' ');
+    // if two names passed 
+    if (splitName.length === 2){
+      splitName = splitName.map(s => "%" + s.toLowerCase() + "%")
+      const results = await db.query(
+        `${QUERY}
+         WHERE LOWER(first_name) LIKE $1 AND LOWER(last_name) LIKE $2
+         ORDER BY last_name, first_name`, splitName)
+      return results.rows.map(row => new Customer(row));
+    } else {
+      name = '%' + name.toLowerCase() + '%';
+      const results = await db.query(
+        `${QUERY}
+         WHERE LOWER(first_name) LIKE $1 OR LOWER(last_name) LIKE $1
+         ORDER BY last_name, first_name`, [name])
+      console.log(results, name);
+      return results.rows.map(row => new Customer(row));
+    }
   }
 
   /** find all customers. */
@@ -57,6 +86,12 @@ class Customer {
   }
 
   /** get all reservations for this customer. */
+
+
+  //get full name for a customer
+  getFullName() {
+    return this.firstName + " " + this.lastName;
+  }
 
   async getReservations() {
     return await Reservation.getReservationsForCustomer(this.id);

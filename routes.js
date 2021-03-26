@@ -16,6 +16,20 @@ router.get("/", async function (req, res, next) {
   return res.render("customer_list.html", { customers });
 });
 
+router.post("/search", async function (req, res, next) {
+  let name = req.body.name;
+  const customers = await Customer.search(name);
+  return res.render("customer_list.html", { customers });
+});
+
+// //show top 10 customers
+
+// router.get("/", async function (req, res, next) {
+//   const customers = await Customer.all();
+//   return res.render("customer_list.html", { customers });
+// });
+
+
 /** Form to add a new customer. */
 
 router.get("/add/", async function (req, res, next) {
